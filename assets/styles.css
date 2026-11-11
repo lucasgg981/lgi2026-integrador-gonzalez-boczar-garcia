@@ -59,15 +59,20 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visib
 .estado p { margin-bottom: 0; }
 .error { padding: 12px; border: 1px solid #e5b9b9; border-radius: 8px; background: #fff0f0; color: #8a2424; }
 
-.panel-eventos { max-width: 1200px; }
+.panel-eventos, .panel-participantes { max-width: 1200px; }
 .aviso { padding: 12px; border: 1px solid #b7d8cf; border-radius: 8px; background: #e8f4f1; }
 .tabla-contenedor { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border-bottom: 1px solid #d8e2e5; text-align: left; vertical-align: top; }
 th { background: #e8f4f1; }
-.acciones-evento { display: flex; align-items: center; gap: 12px; }
-.acciones-evento form { margin: 0; }
-.formulario-evento button { margin-top: 24px; }
+.acciones-panel { display: flex; flex-wrap: wrap; gap: 12px; }
+.acciones-evento, .acciones-participante { display: flex; align-items: center; gap: 12px; }
+.acciones-evento form, .acciones-participante form { margin: 0; }
+.acciones-participante .nota { margin: 0; }
+.formulario-evento button, .formulario-participante button { margin-top: 24px; }
+.buscador { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 24px 0; }
+.buscador label { flex: 1 1 100%; margin: 0; }
+.buscador input { flex: 1 1 240px; width: auto; }
 
 @media (max-width: 520px) {
     body { padding: 20px 12px; }

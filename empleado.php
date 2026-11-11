@@ -22,10 +22,13 @@ $usuario = requerir_rol('empleado');
         <span class="rol">Empleado</span>
         <h1>Hola, <?= escapar($usuario['nombre']) ?></h1>
         <p class="descripcion">Bienvenido al panel del personal.</p>
-        <p><a class="boton" href="eventos/index.php">Consultar eventos y cupos</a></p>
+        <p class="acciones-panel">
+            <a class="boton" href="eventos/index.php">Consultar eventos y cupos</a>
+            <a class="boton" href="participantes/index.php">Registrar y buscar participantes</a>
+        </p>
         <section class="estado">
             <h2>Tu sesión está activa</h2>
-            <p>Desde este espacio se incorporarán la consulta de eventos y el registro de participantes e inscripciones.</p>
+            <p>Desde este espacio podés consultar eventos y administrar participantes. Las inscripciones se incorporarán próximamente.</p>
         </section>
     </main>
 </body>
