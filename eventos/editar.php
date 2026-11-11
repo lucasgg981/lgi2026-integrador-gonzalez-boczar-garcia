@@ -1,81 +1,77 @@
 <?php
-// Pantalla para modificar un evento que ya existe.
-require_once __DIR__ . "/../conexion.php";
+require __DIR__ . '/../includes/auth.php';
+require __DIR__ . '/../includes/database.php';
+require __DIR__ . '/../includes/eventos.php';
+$usuario = requerir_rol('administrador');
 
-$id = (int) $_GET["id"];
-$consulta = $conexion->query("SELECT * FROM eventos WHERE id_evento = $id");
-$evento = $consulta->fetch_assoc();
-
-if ($evento == null) {
-    die("El evento no existe. <a href='index.php'>Volver</a>");
+$id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if ($id === false) {
+    http_response_code(400);
+    exit('El identificador del evento no es válido.');
 }
 
-$error = "";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valido()) {
+    http_response_code(403);
+    exit('La sesión del formulario venció. Volvé al listado e intentá nuevamente.');
+}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $titulo = trim($_POST["titulo"]);
-    $descripcion = trim($_POST["descripcion"]);
-    $lugar = trim($_POST["lugar"]);
-    $fecha_evento = str_replace("T", " ", $_POST["fecha_evento"]);
-    $fecha_limite = str_replace("T", " ", $_POST["fecha_limite_inscripcion"]);
-    $cupo_maximo = (int) $_POST["cupo_maximo"];
+$error = '';
+$evento = null;
+$accion = 'editar.php?id=' . $id;
 
-    if ($titulo == "" || $lugar == "" || $fecha_evento == "" || $fecha_limite == "" || $cupo_maximo <= 0) {
-        $error = "Completa todos los campos. El cupo tiene que ser mayor a cero.";
-    } elseif ($fecha_limite > $fecha_evento) {
-        $error = "La fecha limite no puede ser posterior a la fecha del evento.";
-    } else {
-        $sql = "UPDATE eventos
-                SET titulo = ?, descripcion = ?, lugar = ?, fecha_evento = ?, fecha_limite_inscripcion = ?, cupo_maximo = ?
-                WHERE id_evento = ?";
-        $sentencia = $conexion->prepare($sql);
-        $sentencia->bind_param("sssssii", $titulo, $descripcion, $lugar, $fecha_evento, $fecha_limite, $cupo_maximo, $id);
-        $sentencia->execute();
-
-        header("Location: index.php?mensaje=" . urlencode("Evento modificado correctamente."));
-        exit;
+try {
+    $conexion = conectar_db();
+    $consulta = $conexion->prepare('SELECT * FROM eventos WHERE id_evento = :id');
+    $consulta->execute(['id' => $id]);
+    $evento = $consulta->fetch();
+    if ($evento === false) {
+        http_response_code(404);
+        exit('El evento no existe.');
     }
-}
 
-$fecha_evento_input = str_replace(" ", "T", $evento["fecha_evento"]);
-$fecha_limite_input = str_replace(" ", "T", $evento["fecha_limite_inscripcion"]);
+    $evento['fecha_evento'] = (new DateTimeImmutable($evento['fecha_evento']))->format('Y-m-d\TH:i');
+    $evento['fecha_limite_inscripcion'] = (new DateTimeImmutable($evento['fecha_limite_inscripcion']))->format('Y-m-d\TH:i');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $evento = datos_evento($_POST);
+        $error = validar_evento($evento);
+        if ($error === '') {
+            $consulta = $conexion->prepare(
+                'UPDATE eventos SET titulo = :titulo, descripcion = :descripcion, lugar = :lugar,
+                 fecha_evento = :fecha_evento, fecha_limite_inscripcion = :fecha_limite_inscripcion,
+                 cupo_maximo = :cupo_maximo WHERE id_evento = :id'
+            );
+            $consulta->execute($evento + ['id' => $id]);
+            header('Location: index.php?mensaje=' . urlencode('Evento modificado correctamente.'));
+            exit;
+        }
+    }
+} catch (PDOException | RuntimeException $exception) {
+    error_log('Error al editar evento: ' . $exception->getMessage());
+    $error = 'No pudimos cargar o guardar el evento. Intentá nuevamente más tarde.';
+}
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Editar evento</title>
-    <link rel="stylesheet" href="estilos.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar evento | Eventos y cursos</title>
+    <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
-    <h1>Editar evento</h1>
-
-    <p><a href="index.php">Volver al listado</a></p>
-
-    <?php if ($error != "") { ?>
-        <p class="error"><?php echo htmlspecialchars($error); ?></p>
-    <?php } ?>
-
-    <form method="post" action="editar.php?id=<?php echo $evento["id_evento"]; ?>">
-        <label>Titulo</label>
-        <input type="text" name="titulo" value="<?php echo htmlspecialchars($evento["titulo"]); ?>" required>
-
-        <label>Descripcion</label>
-        <textarea name="descripcion" rows="3"><?php echo htmlspecialchars($evento["descripcion"]); ?></textarea>
-
-        <label>Lugar</label>
-        <input type="text" name="lugar" value="<?php echo htmlspecialchars($evento["lugar"]); ?>" required>
-
-        <label>Fecha del evento</label>
-        <input type="datetime-local" name="fecha_evento" value="<?php echo $fecha_evento_input; ?>" required>
-
-        <label>Fecha limite de inscripcion</label>
-        <input type="datetime-local" name="fecha_limite_inscripcion" value="<?php echo $fecha_limite_input; ?>" required>
-
-        <label>Cupo maximo</label>
-        <input type="number" name="cupo_maximo" min="1" value="<?php echo $evento["cupo_maximo"]; ?>" required>
-
-        <button type="submit">Guardar cambios</button>
-    </form>
+    <main class="panel">
+        <header class="cabecera">
+            <p class="etiqueta">Eventos y cursos</p>
+            <a href="index.php">Volver al listado</a>
+        </header>
+        <h1>Editar evento</h1>
+        <?php if ($error !== ''): ?>
+            <p class="error" role="alert"><?= escapar($error) ?></p>
+        <?php endif; ?>
+        <?php if (is_array($evento)): ?>
+            <?php require __DIR__ . '/../includes/formulario_evento.php'; ?>
+        <?php endif; ?>
+    </main>
 </body>
 </html>

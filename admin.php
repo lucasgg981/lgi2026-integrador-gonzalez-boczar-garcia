@@ -22,6 +22,7 @@ $usuario = requerir_rol('administrador');
         <span class="rol">Administrador</span>
         <h1>Hola, <?= escapar($usuario['nombre']) ?></h1>
         <p class="descripcion">Bienvenido al panel de administración.</p>
+        <p><a class="boton" href="eventos/index.php">Gestionar eventos y consultar cupos</a></p>
         <section class="estado">
             <h2>Tu sesión está activa</h2>
             <p>Desde este espacio se incorporarán la gestión de cuentas y las funciones de administración.</p>
