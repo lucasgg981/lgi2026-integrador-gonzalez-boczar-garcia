@@ -2,9 +2,9 @@
 
 Integrantes: Lucas González, Boczar y García.
 
-Incluye inicio y cierre de sesión, contraseñas con hash, paneles por rol y el
-módulo de eventos y consulta de cupos. La gestión de cuentas, participantes e
-inscripciones se incorporará en siguientes entregas.
+Incluye inicio y cierre de sesión, contraseñas con hash, paneles por rol, el
+módulo de eventos y consulta de cupos y la gestión de participantes. La gestión
+de cuentas e inscripciones se incorporará en siguientes entregas.
 
 ## Preparar cada localhost
 
@@ -22,14 +22,15 @@ Requisitos: Apache, PHP 8.1 o superior con `pdo_mysql` y MySQL 8.0.16 o superior
 
 4. Completar `config/database.local.php` con un usuario de MySQL que tenga acceso
    a esa base y su contraseña. Este archivo es personal y Git lo ignora.
-5. Crear las dos cuentas de prueba desde la carpeta del proyecto:
+5. Cargar los datos de demostración desde la carpeta del proyecto:
 
    ```bash
-   php scripts/crear_usuarios_demo.php
+   php scripts/sembrar_datos_demo.php
    ```
 
-   El script guarda hashes y no modifica cuentas que ya existan. Las siguientes
-   credenciales son de demostración para el desarrollo local:
+   El script guarda hashes y crea las cuentas de prueba, cuatro eventos, seis
+   participantes y algunas inscripciones. Es idempotente: no duplica registros
+   ni modifica los que ya existan. Las credenciales de demostración son:
 
    | Rol | Correo | Contraseña |
    | --- | --- | --- |
@@ -96,19 +97,34 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
 - Las pantallas reutilizan `assets/styles.css` y muestran mensajes generales de
   error; el detalle técnico se registra en el log de PHP.
 
+## Participantes
+
+- Ambos roles pueden consultar `participantes/index.php`, buscar por nombre,
+  apellido, correo o teléfono y registrar o modificar participantes.
+- Solo el administrador puede eliminar participantes, y únicamente si no tienen
+  inscripciones registradas, activas o canceladas.
+- El correo y el teléfono son opcionales. La validación está en
+  `includes/participantes.php` y el formulario compartido en
+  `includes/formulario_participante.php`.
+- Los formularios usan token CSRF y consultas preparadas PDO. El listado muestra
+  las inscripciones activas de cada participante.
+- Los participantes no tienen cuenta de acceso: se guardan como datos y son
+  operados por el personal.
+
 ## Verificación
 
 Desde la raíz del proyecto, ejecutar:
 
 ```bash
 php tests/eventos.php
+php tests/participantes.php
 ```
 
-Estas pruebas verifican validación de eventos, restricciones por rol, CSRF,
-eliminación mediante POST, escape de HTML y rutas de sesión desde subcarpetas.
-No requieren conexión a MySQL ni modifican registros. Las operaciones completas
-de alta, consulta, edición y eliminación deben probarse además con la base local
-configurada y el esquema importado.
+Estas pruebas verifican validación de eventos y participantes, restricciones por
+rol, CSRF, eliminación mediante POST, escape de HTML y rutas de sesión desde
+subcarpetas. No requieren conexión a MySQL ni modifican registros. Las
+operaciones completas de alta, consulta, edición y eliminación deben probarse
+además con la base local configurada y el esquema importado.
 
 ## Reparto y acuerdos de integración
 
