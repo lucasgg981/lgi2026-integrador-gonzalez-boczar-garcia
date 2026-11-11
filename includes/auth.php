@@ -3,7 +3,7 @@
 ini_set('session.use_strict_mode', '1');
 session_name('lgi_eventos');
 session_set_cookie_params([
-    'path' => rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/',
+    'path' => ruta_aplicacion(''),
     'httponly' => true,
     'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
     'samesite' => 'Lax',
@@ -11,6 +11,22 @@ session_set_cookie_params([
 session_start();
 header('Content-Type: text/html; charset=UTF-8');
 header('Cache-Control: no-store');
+
+function ruta_aplicacion(string $ruta): string
+{
+    $directorio = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    $script = realpath($_SERVER['SCRIPT_FILENAME'] ?? '') ?: '';
+    $raiz = dirname(__DIR__) . DIRECTORY_SEPARATOR;
+
+    if (str_starts_with($script, $raiz)) {
+        $niveles = substr_count(substr($script, strlen($raiz)), DIRECTORY_SEPARATOR);
+        for ($nivel = 0; $nivel < $niveles; $nivel++) {
+            $directorio = dirname($directorio);
+        }
+    }
+
+    return rtrim($directorio, '/') . '/' . ltrim($ruta, '/');
+}
 
 function escapar(string $valor): string
 {
@@ -24,14 +40,14 @@ function usuario_actual(): ?array
 
 function ruta_panel(string $rol): string
 {
-    return $rol === 'administrador' ? 'admin.php' : 'empleado.php';
+    return ruta_aplicacion($rol === 'administrador' ? 'admin.php' : 'empleado.php');
 }
 
 function requerir_sesion(): array
 {
     $usuario = usuario_actual();
     if ($usuario === null) {
-        header('Location: index.php');
+        header('Location: ' . ruta_aplicacion('index.php'));
         exit;
     }
 

@@ -1,2 +1,4 @@
+# Datos privados de conexion de cada computadora
+config.local.php
 /config/database.local.php
 *.log
