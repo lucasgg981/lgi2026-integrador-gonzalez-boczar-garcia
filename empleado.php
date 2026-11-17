@@ -25,10 +25,11 @@ $usuario = requerir_rol('empleado');
         <p class="acciones-panel">
             <a class="boton" href="eventos/index.php">Consultar eventos y cupos</a>
             <a class="boton" href="participantes/index.php">Registrar y buscar participantes</a>
+            <a class="boton" href="inscripciones/index.php">Consultar e inscribir participantes</a>
         </p>
         <section class="estado">
             <h2>Tu sesión está activa</h2>
-            <p>Desde este espacio podés consultar eventos y administrar participantes. Las inscripciones se incorporarán próximamente.</p>
+            <p>Desde este espacio podés consultar eventos, administrar participantes e inscribirlos en eventos.</p>
         </section>
     </main>
 </body>

@@ -3,8 +3,9 @@
 Integrantes: Lucas González, Boczar y García.
 
 Incluye inicio y cierre de sesión, contraseñas con hash, paneles por rol, el
-módulo de eventos y consulta de cupos y la gestión de participantes. La gestión
-de cuentas e inscripciones se incorporará en siguientes entregas.
+módulo de eventos y consulta de cupos, la gestión de participantes y las
+inscripciones y cancelaciones. La gestión de cuentas se incorporará en
+siguientes entregas.
 
 ## Preparar cada localhost
 
@@ -111,6 +112,18 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
 - Los participantes no tienen cuenta de acceso: se guardan como datos y son
   operados por el personal.
 
+## Inscripciones y cancelaciones
+
+- Ambos roles pueden consultar `inscripciones/index.php` e inscribir participantes.
+- Solo el administrador puede cancelar inscripciones.
+- La inscripción se crea en estado `activa`, descuenta un cupo del evento y no
+  puede duplicarse para el mismo participante y evento.
+- No se inscribe si el evento no tiene cupos disponibles o si ya cerró el plazo.
+- La cancelación cambia el estado a `cancelada` y libera el cupo; no borra el
+  registro, por lo que los eventos y participantes con inscripciones (activas o
+  canceladas) no pueden eliminarse.
+- Los formularios usan token CSRF y consultas preparadas PDO.
+
 ## Verificación
 
 Desde la raíz del proyecto, ejecutar:
@@ -118,6 +131,7 @@ Desde la raíz del proyecto, ejecutar:
 ```bash
 php tests/eventos.php
 php tests/participantes.php
+php tests/inscripciones.php
 ```
 
 Estas pruebas verifican validación de eventos y participantes, restricciones por
