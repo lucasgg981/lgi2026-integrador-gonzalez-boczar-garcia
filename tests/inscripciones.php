@@ -1,6 +1,6 @@
 <?php
 
-// Ejecutar con php tests/inscripciones.php. No modifica la base de datos.
+// Ejecutar con php tests/inscripciones.php. Requiere MySQL y CREATE TEMPORARY TABLES; no modifica registros reales.
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
     exit;
@@ -24,10 +24,11 @@ if (($argv[1] ?? '') === '--peticion') {
     if (isset($caso['rol'])) {
         $_SESSION['usuario'] = [
             'id_usuario' => 1, 'nombre' => 'Prueba', 'apellido' => 'Local',
-            'email' => 'prueba@eventos.local', 'rol' => $caso['rol'],
+            'email' => 'prueba@eventos.local', 'rol' => $caso['rol'], 'version_sesion' => 1,
         ];
     }
     session_write_close();
+    require __DIR__ . '/preparar_usuario.php';
 
     ob_start();
     register_shutdown_function(function (): void {

@@ -4,8 +4,7 @@ Integrantes: Lucas González, Boczar y García.
 
 Incluye inicio y cierre de sesión, contraseñas con hash, paneles por rol, el
 módulo de eventos y consulta de cupos, la gestión de participantes y las
-inscripciones y cancelaciones. La gestión de cuentas se incorporará en
-siguientes entregas.
+inscripciones y cancelaciones, y la gestión de cuentas del personal.
 
 ## Preparar cada localhost
 
@@ -15,6 +14,12 @@ Requisitos: Apache, PHP 8.1 o superior con `pdo_mysql` y MySQL 8.0.16 o superior
 2. Importar `database/esquema.sql` en MySQL, por ejemplo desde phpMyAdmin.
    Crea la base `eventos_cursos` y las tablas `usuarios`, `eventos`,
    `participantes` e `inscripciones` sin borrar datos existentes.
+   Si la base ya existía antes de la gestión de usuarios, agregar las columnas
+   `activo` y `version_sesion` con un usuario de MySQL que tenga permiso ALTER.
+   El script `php scripts/actualizar_usuarios.php` verifica qué columnas faltan y
+   solo agrega esas columnas; se puede ejecutar nuevamente sin perder datos.
+   Si la cuenta de la aplicación no tiene permiso ALTER, un administrador de MySQL
+   debe ejecutar `database/actualizar_usuarios.sql` una sola vez.
 3. Copiar la configuración de ejemplo:
 
    ```bash
@@ -98,6 +103,18 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
 - Las pantallas reutilizan `assets/styles.css` y muestran mensajes generales de
   error; el detalle técnico se registra en el log de PHP.
 
+## Usuarios del personal
+
+- Solo el administrador puede listar, crear y editar cuentas desde su panel.
+- El correo es único y los roles son `administrador` y `empleado`.
+- Se puede cambiar la contraseña desde la edición; dejarla vacía conserva la actual.
+- Las contraseñas se guardan con `password_hash` y nunca se muestran.
+- La desactivación conserva las inscripciones y evita nuevos ingresos.
+- No se permite quitarse el propio acceso ni dejar al sistema sin un administrador activo.
+- Guardar una edición invalida las sesiones anteriores de esa cuenta. Si editás
+  tu propia cuenta, deberás volver a iniciar sesión.
+- Las sesiones creadas antes de actualizar este módulo requieren iniciar sesión otra vez.
+
 ## Participantes
 
 - Ambos roles pueden consultar `participantes/index.php`, buscar por nombre,
@@ -135,14 +152,18 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
 Desde la raíz del proyecto, ejecutar:
 
 ```bash
+php tests/usuarios.php
 php tests/eventos.php
+php tests/participantes.php
+php tests/inscripciones.php
 php tests/participantes.php
 php tests/inscripciones.php
 ```
 
 Estas pruebas verifican validación de eventos y participantes, restricciones por
 rol, CSRF, eliminación mediante POST, escape de HTML y rutas de sesión desde
-subcarpetas. No requieren conexión a MySQL ni modifican registros. Las
+subcarpetas. Requieren MySQL con el esquema actualizado y permiso `CREATE TEMPORARY TABLES`.
+Usan cuentas en tablas temporales sin modificar los usuarios reales. Las
 operaciones completas de alta, consulta, edición y eliminación deben probarse
 además con la base local configurada y el esquema importado.
 

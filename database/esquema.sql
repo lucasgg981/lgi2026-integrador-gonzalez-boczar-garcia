@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     email VARCHAR(254) NOT NULL UNIQUE,
     clave_hash VARCHAR(255) NOT NULL,
     rol VARCHAR(20) NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    version_sesion INT NOT NULL DEFAULT 1,
     CONSTRAINT usuarios_rol_valido CHECK (rol IN ('administrador', 'empleado'))
 ) ENGINE=InnoDB;
 

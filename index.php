@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/includes/auth.php';
-require __DIR__ . '/includes/database.php';
+require_once __DIR__ . '/includes/database.php';
 
 if (usuario_actual() !== null) {
     header('Location: ' . ruta_panel(usuario_actual()['rol']));
@@ -17,17 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_valido()) {
         http_response_code(403);
         $error = 'La sesión del formulario venció. Volvé a intentarlo.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254 || $clave === '' || strlen($clave) > 4096) {
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254 || $clave === '' || strlen($clave) > 72) {
         $error = 'Ingresá un correo válido y tu contraseña.';
     } else {
         try {
             $consulta = conectar_db()->prepare(
-                'SELECT id_usuario, nombre, apellido, email, clave_hash, rol FROM usuarios WHERE email = :email'
+                'SELECT id_usuario, nombre, apellido, email, clave_hash, rol, activo, version_sesion FROM usuarios WHERE email = :email'
             );
             $consulta->execute(['email' => $email]);
             $usuario = $consulta->fetch();
 
-            if ($usuario && password_verify($clave, $usuario['clave_hash'])
+            if ($usuario && (int) $usuario['activo'] === 1 && password_verify($clave, $usuario['clave_hash'])
                 && in_array($usuario['rol'], ['administrador', 'empleado'], true)) {
                 session_regenerate_id(true);
                 unset($usuario['clave_hash']);
