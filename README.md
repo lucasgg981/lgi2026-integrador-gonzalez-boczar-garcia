@@ -116,8 +116,14 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
 
 - Ambos roles pueden consultar `inscripciones/index.php` e inscribir participantes.
 - Solo el administrador puede cancelar inscripciones.
+- El formulario muestra los cupos disponibles de cada evento y deshabilita los
+  que están completos con la marca `[COMPLETO]`.
 - La inscripción se crea en estado `activa`, descuenta un cupo del evento y no
   puede duplicarse para el mismo participante y evento.
+- El alta usa una transacción PDO y bloquea la fila del evento con
+  `SELECT ... FOR UPDATE` antes de verificar el cupo, evitando sobreinscripciones
+  si dos personas intentan inscribirse al mismo tiempo. Si falla, se revierte la
+  transacción con `rollBack()`.
 - No se inscribe si el evento no tiene cupos disponibles o si ya cerró el plazo.
 - La cancelación cambia el estado a `cancelada` y libera el cupo; no borra el
   registro, por lo que los eventos y participantes con inscripciones (activas o
