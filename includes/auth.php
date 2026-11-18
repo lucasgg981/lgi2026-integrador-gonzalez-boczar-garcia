@@ -21,7 +21,7 @@ function ruta_aplicacion(string $ruta): string
     if (str_starts_with($script, $raiz)) {
         $niveles = substr_count(substr($script, strlen($raiz)), DIRECTORY_SEPARATOR);
         for ($nivel = 0; $nivel < $niveles; $nivel++) {
-            $directorio = dirname($directorio);
+            $directorio = str_replace('\\', '/', dirname($directorio));
         }
     }
 
