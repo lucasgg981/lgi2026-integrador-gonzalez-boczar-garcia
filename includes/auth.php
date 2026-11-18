@@ -35,7 +35,32 @@ function escapar(string $valor): string
 
 function usuario_actual(): ?array
 {
-    return $_SESSION['usuario'] ?? null;
+    if (!isset($_SESSION['usuario'])) {
+        return null;
+    }
+
+    require_once __DIR__ . '/database.php';
+    try {
+        $consulta = conectar_db()->prepare(
+            'SELECT id_usuario, nombre, apellido, email, rol, activo, version_sesion
+             FROM usuarios WHERE id_usuario = :id'
+        );
+        $consulta->execute(['id' => $_SESSION['usuario']['id_usuario']]);
+        $usuario = $consulta->fetch();
+    } catch (PDOException | RuntimeException $exception) {
+        error_log('Error al verificar la sesión: ' . $exception->getMessage());
+        http_response_code(503);
+        exit('No pudimos verificar la sesión. Intentá nuevamente más tarde.');
+    }
+
+    if (!$usuario || (int) $usuario['activo'] !== 1
+        || (int) $usuario['version_sesion'] !== (int) ($_SESSION['usuario']['version_sesion'] ?? 0)) {
+        unset($_SESSION['usuario'], $_SESSION['csrf']);
+        return null;
+    }
+
+    $_SESSION['usuario'] = $usuario;
+    return $usuario;
 }
 
 function ruta_panel(string $rol): string

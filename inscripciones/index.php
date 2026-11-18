@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
-require __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/database.php';
 $usuario = requerir_sesion();
 
 $error = '';
