@@ -26,7 +26,7 @@ try {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Eventos y cupos | Eventos y cursos</title>
+    <title>Eventos | Eventos y cursos</title>
     <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -35,7 +35,7 @@ try {
             <p class="etiqueta">Eventos y cursos</p>
             <a href="<?= escapar(ruta_panel($usuario['rol'])) ?>">Volver al panel</a>
         </header>
-        <h1>Eventos y cupos</h1>
+        <h1>Eventos</h1>
         <?php if ($usuario['rol'] === 'administrador'): ?>
             <p><a class="boton" href="crear.php">Nuevo evento</a></p>
         <?php endif; ?>
