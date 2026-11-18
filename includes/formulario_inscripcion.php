@@ -22,14 +22,23 @@ if (!isset($inscripcion, $accion) || !isset($participantes, $eventos)) {
     <select id="id_evento" name="id_evento" required>
         <option value="">Seleccioná un evento</option>
         <?php foreach ($eventos as $evento): ?>
+            <?php
+                $disponibles = (int) $evento['cupos_disponibles'];
+                $completo = $disponibles <= 0;
+                $seleccionado = (string) ($inscripcion['id_evento'] ?? '') === (string) $evento['id_evento'];
+            ?>
             <option value="<?= (int) $evento['id_evento'] ?>"
-                <?= (string) ($inscripcion['id_evento'] ?? '') === (string) $evento['id_evento'] ? 'selected' : '' ?>>
-                <?= escapar($evento['titulo']) ?> (<?= escapar($evento['fecha_evento']) ?>)
+                <?= $completo ? 'disabled' : '' ?>
+                <?= $seleccionado && !$completo ? 'selected' : '' ?>>
+                <?= escapar($evento['titulo']) ?>
+                (Cupos disponibles: <?= max(0, $disponibles) ?> / <?= (int) $evento['cupo_maximo'] ?>)
+                - <?= escapar($evento['fecha_evento']) ?>
+                <?= $completo ? '[COMPLETO]' : '' ?>
             </option>
         <?php endforeach; ?>
     </select>
 
-    <p class="nota">La inscripción queda activa y descuenta un cupo del evento.</p>
+    <p class="nota">La inscripción queda activa y descuenta un cupo del evento. Los eventos sin cupo aparecen deshabilitados como [COMPLETO].</p>
 
     <button type="submit">Inscribir participante</button>
 </form>

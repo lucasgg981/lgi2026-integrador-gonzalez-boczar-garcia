@@ -49,11 +49,9 @@ try {
             <p class="error" role="alert"><?= escapar($error) ?></p>
         <?php endif; ?>
 
-        <?php if ($error !== ''): ?>
-            <p class="descripcion">No se pudo mostrar el listado.</p>
-        <?php elseif ($inscripciones === []): ?>
+        <?php if ($error === '' && $inscripciones === []): ?>
             <p class="descripcion">Todavía no hay inscripciones registradas.</p>
-        <?php else: ?>
+        <?php elseif ($error === ''): ?>
             <div class="tabla-contenedor">
                 <table>
                     <thead>

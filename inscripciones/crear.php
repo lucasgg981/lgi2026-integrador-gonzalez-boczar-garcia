@@ -19,55 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = validar_inscripcion($inscripcion);
         if ($error === '') {
             try {
-                $conexion = conectar_db();
-                $consulta = $conexion->prepare('SELECT COUNT(*) FROM participantes WHERE id_participante = :id');
-                $consulta->execute(['id' => (int) $inscripcion['id_participante']]);
-                if ((int) $consulta->fetchColumn() === 0) {
-                    $error = 'El participante seleccionado no existe.';
-                } else {
-                    $consulta = $conexion->prepare('SELECT cupo_maximo, fecha_limite_inscripcion, fecha_evento FROM eventos WHERE id_evento = :id');
-                    $consulta->execute(['id' => (int) $inscripcion['id_evento']]);
-                    $evento = $consulta->fetch();
-                    if ($evento === false) {
-                        $error = 'El evento seleccionado no existe.';
-                    } else {
-                        $consulta = $conexion->prepare(
-                            'SELECT COUNT(*) FROM inscripciones WHERE id_participante = :participante AND id_evento = :evento'
-                        );
-                        $consulta->execute([
-                            'participante' => (int) $inscripcion['id_participante'],
-                            'evento' => (int) $inscripcion['id_evento'],
-                        ]);
-                        if ((int) $consulta->fetchColumn() > 0) {
-                            $error = 'Ese participante ya está inscripto en ese evento.';
-                        } else {
-                            $consulta = $conexion->prepare(
-                                "SELECT COUNT(*) FROM inscripciones
-                                 WHERE id_evento = :evento AND estado = 'activa'"
-                            );
-                            $consulta->execute(['evento' => (int) $inscripcion['id_evento']]);
-                            $activas = (int) $consulta->fetchColumn();
-                            if ($activas >= (int) $evento['cupo_maximo']) {
-                                $error = 'No hay cupos disponibles para ese evento.';
-                            } elseif (strtotime((string) $evento['fecha_limite_inscripcion']) < time()) {
-                                $error = 'La inscripción a ese evento ya cerró.';
-                            } else {
-                                $consulta = $conexion->prepare(
-                                    'INSERT INTO inscripciones (id_participante, id_evento, id_usuario, fecha_inscripcion, estado)
-                                     VALUES (:id_participante, :id_evento, :id_usuario, :fecha_inscripcion, :estado)'
-                                );
-                                $consulta->execute([
-                                    'id_participante' => (int) $inscripcion['id_participante'],
-                                    'id_evento' => (int) $inscripcion['id_evento'],
-                                    'id_usuario' => (int) $usuario['id_usuario'],
-                                    'fecha_inscripcion' => date('Y-m-d H:i:s'),
-                                    'estado' => 'activa',
-                                ]);
-                                header('Location: index.php?mensaje=' . urlencode('Participante inscripto correctamente.'));
-                                exit;
-                            }
-                        }
-                    }
+                $error = registrar_inscripcion(
+                    conectar_db(),
+                    (int) $inscripcion['id_participante'],
+                    (int) $inscripcion['id_evento'],
+                    (int) $usuario['id_usuario']
+                );
+
+                if ($error === '') {
+                    header('Location: index.php?mensaje=' . urlencode('Participante inscripto correctamente.'));
+                    exit;
                 }
             } catch (PDOException | RuntimeException $exception) {
                 if (PHP_SAPI !== 'cli') { error_log('Error al crear inscripción: ' . $exception->getMessage()); }
@@ -81,7 +42,7 @@ try {
     $conexion = conectar_db();
     $consulta = $conexion->query('SELECT id_participante, nombre, apellido FROM participantes ORDER BY apellido, nombre');
     $participantes = $consulta->fetchAll();
-    $consulta = $conexion->query("SELECT id_evento, titulo, fecha_evento, cupo_maximo - (SELECT COUNT(*) FROM inscripciones i WHERE i.id_evento = eventos.id_evento AND i.estado = 'activa') AS cupos_disponibles FROM eventos ORDER BY fecha_evento, id_evento");
+    $consulta = $conexion->query("SELECT id_evento, titulo, fecha_evento, cupo_maximo, cupo_maximo - (SELECT COUNT(*) FROM inscripciones i WHERE i.id_evento = eventos.id_evento AND i.estado = 'activa') AS cupos_disponibles FROM eventos ORDER BY fecha_evento, id_evento");
     $eventos = $consulta->fetchAll();
 } catch (PDOException | RuntimeException $exception) {
     if (PHP_SAPI !== 'cli') { error_log('Error al cargar datos para inscripción: ' . $exception->getMessage()); }
