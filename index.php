@@ -8,10 +8,18 @@ if ($usuario !== null) {
     exit;
 }
 
-$error = '';
-$email = '';
 $registroExitoso = $_SESSION['registro_exitoso'] ?? false;
 unset($_SESSION['registro_exitoso']);
+
+$mostrarLogin = $registroExitoso || isset($_GET['login']) || isset($_GET['entrar']);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !$mostrarLogin) {
+    header('Location: ' . ruta_aplicacion('catalogo.php'), true, 302);
+    exit;
+}
+
+$error = '';
+$email = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';

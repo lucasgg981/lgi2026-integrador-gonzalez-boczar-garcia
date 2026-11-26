@@ -59,7 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="email">Correo electrónico</label>
             <input id="email" name="email" type="email" autocomplete="email" maxlength="150" value="<?= escapar($datos['email']) ?>" required>
             <label for="clave">Contraseña</label>
-            <input id="clave" name="clave" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+            <input id="clave" name="clave" type="password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="clave-ayuda" required>
+<p class="ayuda" id="clave-ayuda">Usá al menos 8 caracteres.</p>
             <button type="submit">Registrarme</button>
         </form>
         <p class="nota">¿Ya tenés cuenta? <a href="index.php">Iniciá sesión</a>.</p>

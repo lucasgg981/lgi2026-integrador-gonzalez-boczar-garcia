@@ -3,6 +3,7 @@ require __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/database.php';
 require __DIR__ . '/../includes/inscripciones.php';
 require __DIR__ . '/../includes/solicitudes.php';
+require __DIR__ . '/../includes/formato.php';
 $usuario = requerir_rol('usuario');
 
 $id_participante = filter_var($usuario['id_participante'] ?? null, FILTER_VALIDATE_INT, [
@@ -55,7 +56,6 @@ try {
             $error = mensaje_solicitud($resultado);
         }
 
-        // El intento pudo consumir el último cupo: volvemos a leer el evento.
         $evento = evento_para_solicitud($conexion, $id_evento) ?? $evento;
     }
 
@@ -80,7 +80,10 @@ $estado = estado_evento($evento);
     <main class="panel panel-solicitud">
         <header class="cabecera">
             <p class="etiqueta">Eventos y cursos</p>
-            <a href="mis-inscripciones.php">Mis inscripciones</a>
+            <nav class="cabecera-enlaces">
+                <a href="mis-inscripciones.php">Mis inscripciones</a>
+                <a href="<?= escapar(ruta_aplicacion('catalogo.php')) ?>">Catálogo</a>
+            </nav>
         </header>
         <h1>Solicitar cupo</h1>
         <p class="descripcion">Revisá los datos del evento antes de confirmar tu solicitud.</p>
@@ -90,7 +93,7 @@ $estado = estado_evento($evento);
             <dl class="datos-evento">
                 <div>
                     <dt>Fecha del evento</dt>
-                    <dd><?= escapar($evento['fecha_evento']) ?></dd>
+                    <dd><?= escapar(formatear_fecha((string) $evento['fecha_evento'])) ?></dd>
                 </div>
                 <div>
                     <dt>Lugar</dt>
@@ -98,7 +101,7 @@ $estado = estado_evento($evento);
                 </div>
                 <div>
                     <dt>Límite de inscripción</dt>
-                    <dd><?= escapar($evento['fecha_limite_inscripcion']) ?></dd>
+                    <dd><?= escapar(formatear_fecha((string) $evento['fecha_limite_inscripcion'])) ?></dd>
                 </div>
                 <div>
                     <dt>Cupos disponibles</dt>
@@ -106,7 +109,7 @@ $estado = estado_evento($evento);
                 </div>
                 <div>
                     <dt>Estado</dt>
-                    <dd><span class="insignia insignia-<?= escapar($estado) ?>"><?= escapar($estado) ?></span></dd>
+                    <dd><span class="insignia insignia-<?= escapar($estado) ?>"><?= escapar(etiqueta_estado_evento($estado)) ?></span></dd>
                 </div>
             </dl>
         </article>
@@ -118,7 +121,7 @@ $estado = estado_evento($evento);
         <?php if ($inscripcion !== null): ?>
             <?php if ($inscripcion['estado'] === 'activa'): ?>
                 <p class="aviso" role="status">Ya tenés una plaza confirmada en este evento.</p>
-                <p><a class="boton" href="mis-inscripciones.php">Ver mis inscripciones</a></p>
+                <p class="acciones-formulario"><a class="boton" href="mis-inscripciones.php">Ver mis inscripciones</a></p>
             <?php else: ?>
                 <p class="aviso" role="status">Tu inscripción a este evento está cancelada. Consultá con el personal si necesitás volver a inscribirte.</p>
             <?php endif; ?>

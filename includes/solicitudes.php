@@ -18,6 +18,25 @@ function estado_evento(array $evento, ?int $ahora = null): string
     return 'disponible';
 }
 
+function etiqueta_estado_evento(string $estado): string
+{
+    return match ($estado) {
+        'disponible' => 'Disponible',
+        'completo' => 'Sin cupos',
+        'cerrado' => 'Plazo cerrado',
+        default => 'Estado desconocido',
+    };
+}
+
+function etiqueta_estado_inscripcion(string $estado): string
+{
+    return match ($estado) {
+        'activa' => 'Confirmada',
+        'cancelada' => 'Cancelada',
+        default => 'Estado desconocido',
+    };
+}
+
 function evento_para_solicitud(PDO $conexion, int $id_evento): ?array
 {
     $consulta = $conexion->prepare(

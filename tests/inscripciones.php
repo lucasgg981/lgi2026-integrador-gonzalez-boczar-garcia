@@ -74,6 +74,7 @@ if (($argv[1] ?? '') === '--cupo') {
 require $raiz . '/includes/database.php';
 require $raiz . '/includes/inscripciones.php';
 require $raiz . '/includes/solicitudes.php';
+require $raiz . '/includes/formato.php';
 
 function comprobar(bool $condicion, string $mensaje): void
 {
@@ -239,6 +240,20 @@ function prueba_solicitud_exitosa(string $sesiones): void
             'archivo' => 'inscripciones/solicitar.php',
             'rol' => 'usuario',
             'id_participante' => $id_participante,
+            'get' => ['id_evento' => (string) $id_evento],
+        ], $sesiones);
+        comprobar($respuesta['estado'] === 200, 'La solicitud debe mostrar la confirmación antes de enviarla.');
+        comprobar(str_contains($respuesta['salida'], 'Confirmar solicitud'), 'Falta el botón de confirmación de la solicitud.');
+        comprobar(str_contains($respuesta['salida'], 'Disponible'), 'Falta el estado comprensible del evento en la solicitud.');
+        comprobar(
+            str_contains($respuesta['salida'], formatear_fecha(date('Y-m-d H:i:s', strtotime('+10 days')))),
+            'La fecha del evento debe estar formateada en la solicitud.'
+        );
+
+        $respuesta = peticion([
+            'archivo' => 'inscripciones/solicitar.php',
+            'rol' => 'usuario',
+            'id_participante' => $id_participante,
             'metodo' => 'POST',
             'post' => ['id_evento' => (string) $id_evento, 'csrf' => 'token-de-prueba'],
         ], $sesiones);
@@ -255,6 +270,19 @@ function prueba_solicitud_exitosa(string $sesiones): void
         comprobar(
             (int) $consulta->fetchColumn() === 1,
             'La autoinscripción debe guardar la cuenta pública que la realizó.'
+        );
+
+        $respuesta = peticion([
+            'archivo' => 'inscripciones/mis-inscripciones.php',
+            'rol' => 'usuario',
+            'id_participante' => $id_participante,
+        ], $sesiones);
+        comprobar($respuesta['estado'] === 200, 'La consulta propia debe renderizarse después de confirmar.');
+        comprobar(str_contains($respuesta['salida'], 'Prueba solicitud ' . $sufijo), 'Falta el evento recién inscripto en la consulta propia.');
+        comprobar(str_contains($respuesta['salida'], 'Confirmada'), 'La inscripción debe mostrarse como confirmada.');
+        comprobar(
+            str_contains($respuesta['salida'], formatear_fecha(date('Y-m-d H:i:s', strtotime('+10 days')))),
+            'La fecha debe estar formateada en la consulta propia.'
         );
     } finally {
         if ($id_participante !== null && $id_evento !== null) {
@@ -310,6 +338,13 @@ try {
         !str_contains(mensaje_solicitud('detalle técnico interno'), 'detalle técnico interno'),
         'El mensaje público no debe exponer el detalle técnico.'
     );
+
+    comprobar(formatear_fecha('2026-12-01 10:30:00') === '01/12/2026 10:30', 'La fecha debe mostrarse en formato día/mes/año hora:minuto.');
+    comprobar(formatear_fecha('fecha inválida') === 'fecha inválida', 'Una fecha inválida debe conservarse sin cambios.');
+    comprobar(etiqueta_estado_evento('completo') === 'Sin cupos', 'El estado de evento completo debe ser comprensible.');
+    comprobar(etiqueta_estado_evento('cerrado') === 'Plazo cerrado', 'El estado de evento cerrado debe ser comprensible.');
+    comprobar(etiqueta_estado_inscripcion('activa') === 'Confirmada', 'La inscripción activa debe mostrarse como confirmada.');
+    comprobar(etiqueta_estado_inscripcion('cancelada') === 'Cancelada', 'La inscripción cancelada debe mostrarse como cancelada.');
 
     foreach (['inscripciones/index.php', 'inscripciones/crear.php', 'inscripciones/cancelar.php', 'inscripciones/eliminar.php'] as $archivo) {
         $respuesta = peticion(['archivo' => $archivo], $sesiones);
