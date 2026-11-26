@@ -21,7 +21,7 @@ La consigna menciona el 26/11 en la sección de sprints y el 01/12 en la secció
 
 ## Backlog priorizado
 
-Cada fila enlaza a su Issue de GitHub. El Issue incluye los criterios y un bloque listo para copiar en el asistente de cada integrante. Para cada Issue de desarrollo, el responsable crea la rama a partir de `main`, hace sus propios commits y abre un PR con `Closes #N`. Otro integrante revisa el PR antes del merge. P1 está completado. El estado de las demás tareas se actualiza en GitHub.
+Cada fila enlaza a su Issue de GitHub. El Issue describe la tarea, los criterios de aceptación, la rama y las dependencias. Para cada Issue de desarrollo, el responsable crea la rama a partir de `main`, hace sus propios commits y abre un PR con `Closes #N`. Otro integrante revisa el PR antes del merge. P1 está completado. El estado de las demás tareas se actualiza en GitHub.
 
 | ID | Tarea | Tipo | Prioridad | Esfuerzo | Responsable | Sprint | Rama |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -97,7 +97,7 @@ Cada fila enlaza a su Issue de GitHub. El Issue incluye los criterios y un bloqu
 
 ## Integración y cierre
 
-- Cada integrante abre su Issue, copia el bloque «Instrucción para copiar al asistente» y le pasa también el enlace del Issue. El asistente trabaja en el clon y con la cuenta de ese integrante.
+- Cada integrante abre su Issue y revisa sus criterios antes de empezar. Si trabaja con un asistente, puede compartirle el enlace y el contexto desde su propio chat.
 - Antes de crear una rama, revisar `git status --short --branch`. Si hay cambios ajenos al Issue, preservarlos y continuar en otro clon o worktree. Para una rama nueva, ejecutar `git fetch origin` y `git switch -c <rama-del-issue> origin/main`. En una rama existente, traer `main` sin reescribir commits compartidos.
 - Antes de abrir el PR, revisar el diff, correr las pruebas del módulo y confirmar que el PR apunta a `main`. En el cuerpo indicar el Issue con `Closes #N`, las pruebas ejecutadas y, si aplica, los pasos de migración. Un compañero revisa el PR y los dueños de cada cambio conservan la autoría de sus commits.
 - En el sprint 1, integrar el registro y su migración antes de cerrar la solicitud de cupos. El catálogo puede avanzar en paralelo con rutas públicas y una consulta de solo lectura.
