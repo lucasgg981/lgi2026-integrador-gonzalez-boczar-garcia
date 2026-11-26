@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/database.php';
-$usuario = requerir_sesion();
+$usuario = requerir_rol('administrador', 'empleado');
 
 $error = '';
 $inscripciones = [];

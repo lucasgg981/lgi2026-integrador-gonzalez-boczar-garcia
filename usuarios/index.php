@@ -7,7 +7,8 @@ $cuentas = [];
 $mensaje = is_string($_GET['mensaje'] ?? null) ? $_GET['mensaje'] : '';
 try {
     $cuentas = conectar_db()->query(
-        'SELECT id_usuario, nombre, apellido, email, rol, activo FROM usuarios ORDER BY apellido, nombre, id_usuario'
+        "SELECT id_usuario, nombre, apellido, email, rol, activo FROM usuarios
+         WHERE rol IN ('administrador', 'empleado') ORDER BY apellido, nombre, id_usuario"
     )->fetchAll();
 } catch (PDOException | RuntimeException $exception) {
     error_log('Error al listar usuarios: ' . $exception->getMessage());
