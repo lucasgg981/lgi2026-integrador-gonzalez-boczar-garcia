@@ -20,7 +20,10 @@ $datos = null;
 $accion = 'editar.php?id=' . $id;
 try {
     $conexion = conectar_db();
-    $consulta = $conexion->prepare('SELECT nombre, apellido, email, rol, activo FROM usuarios WHERE id_usuario = :id');
+    $consulta = $conexion->prepare(
+        "SELECT nombre, apellido, email, rol, activo FROM usuarios WHERE id_usuario = :id
+         AND rol IN ('administrador', 'empleado')"
+    );
     $consulta->execute(['id' => $id]);
     $datos = $consulta->fetch();
     if ($datos === false) {

@@ -1,5 +1,5 @@
 <?php
-// Agrega los campos nuevos sin borrar usuarios ni cambiar contraseñas.
+// Actualiza el esquema sin borrar usuarios ni cambiar contraseñas.
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
     exit;
@@ -13,6 +13,9 @@ try {
     }
     if (!in_array('version_sesion', $columnas, true)) {
         $conexion->exec('ALTER TABLE usuarios ADD COLUMN version_sesion INT NOT NULL DEFAULT 1');
+    }
+    if (!in_array('id_participante', $columnas, true)) {
+        $conexion->exec(file_get_contents(__DIR__ . '/../database/registro_publico.sql'));
     }
     echo "Esquema de usuarios actualizado.\n";
 } catch (PDOException | RuntimeException $exception) {

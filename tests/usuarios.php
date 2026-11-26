@@ -1,6 +1,6 @@
 <?php
 
-// Ejecutar con php tests/participantes.php. Requiere MySQL y CREATE TEMPORARY TABLES; no modifica registros reales.
+// Ejecutar con php tests/usuarios.php. Requiere MySQL y CREATE TEMPORARY TABLES.
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
     exit;
@@ -31,7 +31,7 @@ if (($argv[1] ?? '') === '--peticion') {
     require __DIR__ . '/preparar_usuario.php';
 
     ob_start();
-    register_shutdown_function(function (): void {
+    register_shutdown_function(function () use ($registro_prueba): void {
         $salida = ob_get_clean();
         echo json_encode([
             'estado' => http_response_code() ?: 200,
@@ -40,8 +40,9 @@ if (($argv[1] ?? '') === '--peticion') {
             'inicio' => function_exists('ruta_aplicacion') ? ruta_aplicacion('index.php') : null,
             'panel' => function_exists('ruta_panel') ? ruta_panel('administrador') : null,
             'cuentas' => isset($GLOBALS['db_prueba']) ? $GLOBALS['db_prueba']->query(
-                'SELECT id_usuario, nombre, email, rol, activo, version_sesion FROM usuarios ORDER BY id_usuario'
+                'SELECT id_usuario, nombre, email, rol, activo, version_sesion, id_participante FROM usuarios ORDER BY id_usuario'
             )->fetchAll() : [],
+            'participantes' => $registro_prueba ? (int) $GLOBALS['db_prueba']->query('SELECT COUNT(*) FROM participantes')->fetchColumn() : null,
             'clave_nueva' => isset($GLOBALS['db_prueba']) ? password_verify('Nueva12345!',
                 $GLOBALS['db_prueba']->query('SELECT clave_hash FROM usuarios WHERE id_usuario = 1')->fetchColumn()) : false,
         ], JSON_THROW_ON_ERROR);
@@ -128,7 +129,24 @@ try {
     $r = peticion(['archivo' => 'usuarios/crear.php', 'rol' => 'administrador', 'metodo' => 'POST',
         'post' => array_replace($valido, ['nombre' => '<script>alert(1)</script>', 'email' => '', 'csrf' => 'token-de-prueba'])], $sesiones);
     comprobar(str_contains($r['salida'], '&lt;script&gt;') && !str_contains($r['salida'], 'value="Nueva12345!"'), 'El formulario debe escapar HTML y nunca volver a mostrar la contraseña.');
-    echo "OK: usuarios, permisos, CSRF, correo único, contraseñas, desactivación e invalidación de sesiones.\n";
+    $registro = ['archivo' => 'registro.php', 'metodo' => 'POST'];
+    $campos = $valido + ['id_participante' => 999, 'csrf' => 'token-de-prueba'];
+    $r = peticion($registro + ['post' => array_replace($campos, ['csrf' => 'incorrecto'])], $sesiones);
+    comprobar($r['estado'] === 403 && $r['cuentas'] === [] && $r['participantes'] === 0, 'Se registró sin CSRF válido.');
+    $r = peticion($registro + ['post' => $campos], $sesiones);
+    comprobar($r['estado'] === 303 && $r['participantes'] === 1 && count($r['cuentas']) === 1
+        && $r['cuentas'][0]['rol'] === 'usuario' && (int) $r['cuentas'][0]['id_participante'] === 1
+        && $r['clave_nueva'], 'El registro debe crear su propia cuenta y participante con hash y rol público.');
+    $r = peticion($registro + ['duplicado' => true,
+        'post' => array_replace($campos, ['email' => 'prueba@eventos.local'])], $sesiones);
+    comprobar(str_contains($r['salida'], 'Ya existe una cuenta') && count($r['cuentas']) === 1
+        && $r['participantes'] === 0, 'El duplicado dejó un participante huérfano.');
+    foreach (['admin.php', 'empleado.php', 'usuarios/index.php', 'eventos/index.php', 'participantes/index.php',
+        'participantes/crear.php', 'participantes/editar.php', 'inscripciones/index.php', 'inscripciones/crear.php'] as $archivo) {
+        $r = peticion(['archivo' => $archivo, 'rol' => 'usuario'], $sesiones);
+        comprobar($r['estado'] === 403, 'La cuenta pública pudo entrar a ' . $archivo);
+    }
+    echo "OK: usuarios, registro público, permisos, CSRF, correo único, contraseñas e invalidación de sesiones.\n";
 } finally {
     foreach (glob($sesiones . '/*') as $archivo) { unlink($archivo); }
     rmdir($sesiones);

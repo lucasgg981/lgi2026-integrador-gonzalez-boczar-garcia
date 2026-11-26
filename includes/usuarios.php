@@ -1,9 +1,9 @@
 <?php
 
-function datos_usuario(array $entrada): array
+function datos_cuenta(array $entrada): array
 {
     $datos = [];
-    foreach (['nombre', 'apellido', 'email', 'rol', 'activo'] as $campo) {
+    foreach (['nombre', 'apellido', 'email'] as $campo) {
         $datos[$campo] = is_string($entrada[$campo] ?? null) ? trim($entrada[$campo]) : '';
     }
     // La contraseña no se recorta ni se vuelve a mostrar en el formulario.
@@ -11,25 +11,69 @@ function datos_usuario(array $entrada): array
     return $datos;
 }
 
-function validar_usuario(array $datos, bool $nuevo): string
+function datos_usuario(array $entrada): array
+{
+    return datos_cuenta($entrada) + [
+        'rol' => is_string($entrada['rol'] ?? null) ? trim($entrada['rol']) : '',
+        'activo' => is_string($entrada['activo'] ?? null) ? trim($entrada['activo']) : '',
+    ];
+}
+
+function validar_datos_cuenta(array $datos, bool $nueva, int $maxCorreo = 254): string
 {
     if (trim($datos['nombre']) === '' || trim($datos['apellido']) === ''
         || preg_match('/^.{1,100}$/usD', $datos['nombre']) !== 1
         || preg_match('/^.{1,100}$/usD', $datos['apellido']) !== 1) {
         return 'Completá nombre y apellido, con hasta 100 caracteres cada uno.';
     }
-    if (strlen($datos['email']) > 254 || !filter_var($datos['email'], FILTER_VALIDATE_EMAIL)) {
+    if (strlen($datos['email']) > $maxCorreo || !filter_var($datos['email'], FILTER_VALIDATE_EMAIL)) {
         return 'Ingresá un correo electrónico válido.';
+    }
+    if (($nueva || $datos['clave'] !== '')
+        && (strlen($datos['clave']) < 8 || strlen($datos['clave']) > 72 || str_contains($datos['clave'], "\0"))) {
+        return 'La contraseña debe tener entre 8 y 72 bytes y no contener caracteres nulos.';
+    }
+    return '';
+}
+
+function validar_usuario(array $datos, bool $nuevo): string
+{
+    $error = validar_datos_cuenta($datos, $nuevo);
+    if ($error !== '') {
+        return $error;
     }
     if (!in_array($datos['rol'], ['administrador', 'empleado'], true)
         || !in_array($datos['activo'], ['0', '1'], true)) {
         return 'Seleccioná un rol y un estado válidos.';
     }
-    if (($nuevo || $datos['clave'] !== '')
-        && (strlen($datos['clave']) < 8 || strlen($datos['clave']) > 72 || str_contains($datos['clave'], "\0"))) {
-        return 'La contraseña debe tener entre 8 y 72 bytes y no contener caracteres nulos.';
-    }
     return '';
+}
+
+function registrar_cuenta_publica(PDO $conexion, array $datos): void
+{
+    $hash = password_hash($datos['clave'], PASSWORD_DEFAULT);
+    $identidad = ['nombre' => $datos['nombre'], 'apellido' => $datos['apellido'], 'email' => $datos['email']];
+
+    $conexion->beginTransaction();
+    try {
+        $consulta = $conexion->prepare(
+            'INSERT INTO participantes (nombre, apellido, email) VALUES (:nombre, :apellido, :email)'
+        );
+        $consulta->execute($identidad);
+        $participante = (int) $conexion->lastInsertId();
+
+        $consulta = $conexion->prepare(
+            "INSERT INTO usuarios (nombre, apellido, email, clave_hash, rol, id_participante)
+             VALUES (:nombre, :apellido, :email, :clave_hash, 'usuario', :participante)"
+        );
+        $consulta->execute($identidad + ['clave_hash' => $hash, 'participante' => $participante]);
+        $conexion->commit();
+    } catch (Throwable $exception) {
+        if ($conexion->inTransaction()) {
+            $conexion->rollBack();
+        }
+        throw $exception;
+    }
 }
 
 function actualizar_usuario(PDO $conexion, int $id, array $datos, int $actor): string
@@ -41,7 +85,10 @@ function actualizar_usuario(PDO $conexion, int $id, array $datos, int $actor): s
             "SELECT id_usuario FROM usuarios WHERE rol = 'administrador' AND activo = 1
              ORDER BY id_usuario FOR UPDATE"
         )->fetchAll(PDO::FETCH_COLUMN);
-        $consulta = $conexion->prepare('SELECT id_usuario, rol, activo FROM usuarios WHERE id_usuario = :id FOR UPDATE');
+        $consulta = $conexion->prepare(
+            "SELECT id_usuario, rol, activo FROM usuarios WHERE id_usuario = :id
+             AND rol IN ('administrador', 'empleado') FOR UPDATE"
+        );
         $consulta->execute(['id' => $id]);
         $anterior = $consulta->fetch();
         $error = '';

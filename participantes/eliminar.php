@@ -32,8 +32,12 @@ try {
         $mensaje = $consulta->rowCount() > 0 ? 'Participante eliminado correctamente.' : 'El participante no existe.';
     }
 } catch (PDOException | RuntimeException $exception) {
-    error_log('Error al eliminar participante: ' . $exception->getMessage());
-    $mensaje = 'No pudimos eliminar el participante. Intentá nuevamente más tarde.';
+    if ($exception instanceof PDOException && ($exception->errorInfo[1] ?? null) === 1451) {
+        $mensaje = 'No se puede eliminar el participante porque tiene inscripciones o una cuenta vinculada.';
+    } else {
+        error_log('Error al eliminar participante: ' . $exception->getMessage());
+        $mensaje = 'No pudimos eliminar el participante. Intentá nuevamente más tarde.';
+    }
 }
 
 header('Location: index.php?mensaje=' . urlencode($mensaje));

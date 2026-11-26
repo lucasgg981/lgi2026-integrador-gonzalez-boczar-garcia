@@ -3,19 +3,6 @@ CREATE DATABASE IF NOT EXISTS eventos_cursos
 
 USE eventos_cursos;
 
--- Cuentas del personal. Los participantes no son usuarios.
-CREATE TABLE IF NOT EXISTS usuarios (
-    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellido VARCHAR(100) NOT NULL,
-    email VARCHAR(254) NOT NULL UNIQUE,
-    clave_hash VARCHAR(255) NOT NULL,
-    rol VARCHAR(20) NOT NULL,
-    activo TINYINT(1) NOT NULL DEFAULT 1,
-    version_sesion INT NOT NULL DEFAULT 1,
-    CONSTRAINT usuarios_rol_valido CHECK (rol IN ('administrador', 'empleado'))
-) ENGINE=InnoDB;
-
 -- Eventos y cursos: módulo de Boczar.
 CREATE TABLE IF NOT EXISTS eventos (
     id_evento INT AUTO_INCREMENT PRIMARY KEY,
@@ -35,6 +22,21 @@ CREATE TABLE IF NOT EXISTS participantes (
     apellido VARCHAR(100) NOT NULL,
     email VARCHAR(150),
     telefono VARCHAR(50)
+) ENGINE=InnoDB;
+
+-- Cuentas del personal y cuentas públicas vinculadas a un participante.
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    clave_hash VARCHAR(255) NOT NULL,
+    rol VARCHAR(20) NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    version_sesion INT NOT NULL DEFAULT 1,
+    id_participante INT NULL UNIQUE,
+    CONSTRAINT usuarios_rol_valido CHECK (rol IN ('administrador', 'empleado', 'usuario')),
+    CONSTRAINT fk_usuario_participante FOREIGN KEY (id_participante) REFERENCES participantes(id_participante)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS inscripciones (
