@@ -106,10 +106,14 @@ $usuario = usuario_actual();
                                 <td><?= escapar($evento['fecha_limite_inscripcion']) ?></td>
                                 <td><?= escapar($evento['estado']) ?></td>
                                 <td>
-                                    <?php if ($evento['estado'] === 'disponible'): ?>
+                                    <?php if ($evento['estado'] !== 'disponible'): ?>
+                                        <span class="nota">No disponible</span>
+                                    <?php elseif ($usuario === null): ?>
+                                        <a href="<?= escapar(ruta_aplicacion('index.php')) ?>">Iniciá sesión para pedir cupo</a>
+                                    <?php elseif (file_exists(__DIR__ . '/inscripciones/solicitar.php')): ?>
                                         <a class="boton" href="<?= escapar(ruta_aplicacion('inscripciones/solicitar.php?id_evento=' . (int) $evento['id_evento'])) ?>">Solicitar cupo</a>
                                     <?php else: ?>
-                                        <span class="nota">No disponible</span>
+                                        <span class="nota">Las solicitudes todavía no están habilitadas.</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>

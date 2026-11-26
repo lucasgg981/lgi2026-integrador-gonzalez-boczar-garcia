@@ -82,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit">Ingresar</button>
         </form>
         <p class="nota">¿Todavía no tenés cuenta? <a href="registro.php">Registrate</a>.</p>
+        <p><a href="<?= escapar(ruta_aplicacion('catalogo.php')) ?>">Ver eventos</a></p>
     </main>
 </body>
 </html>
