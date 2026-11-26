@@ -42,7 +42,7 @@ function usuario_actual(): ?array
     require_once __DIR__ . '/database.php';
     try {
         $consulta = conectar_db()->prepare(
-            'SELECT id_usuario, nombre, apellido, email, rol, activo, version_sesion
+            'SELECT id_usuario, nombre, apellido, email, rol, activo, version_sesion, id_participante
              FROM usuarios WHERE id_usuario = :id'
         );
         $consulta->execute(['id' => $_SESSION['usuario']['id_usuario']]);
@@ -65,7 +65,11 @@ function usuario_actual(): ?array
 
 function ruta_panel(string $rol): string
 {
-    return ruta_aplicacion($rol === 'administrador' ? 'admin.php' : 'empleado.php');
+    return ruta_aplicacion(match ($rol) {
+        'administrador' => 'admin.php',
+        'empleado' => 'empleado.php',
+        'usuario' => 'mi-cuenta.php',
+    });
 }
 
 function requerir_sesion(): array
@@ -79,11 +83,11 @@ function requerir_sesion(): array
     return $usuario;
 }
 
-function requerir_rol(string $rol): array
+function requerir_rol(string ...$roles): array
 {
     $usuario = requerir_sesion();
 
-    if ($usuario['rol'] !== $rol) {
+    if (!in_array($usuario['rol'], $roles, true)) {
         http_response_code(403);
         exit('No tenés permiso para acceder a este panel.');
     }

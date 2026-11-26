@@ -2,7 +2,7 @@
 require __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/database.php';
 require __DIR__ . '/../includes/participantes.php';
-$usuario = requerir_sesion();
+$usuario = requerir_rol('administrador', 'empleado');
 
 $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if ($id === false) {

@@ -14,12 +14,6 @@ Requisitos: Apache, PHP 8.1 o superior con `pdo_mysql` y MySQL 8.0.16 o superior
 2. Importar `database/esquema.sql` en MySQL, por ejemplo desde phpMyAdmin.
    Crea la base `eventos_cursos` y las tablas `usuarios`, `eventos`,
    `participantes` e `inscripciones` sin borrar datos existentes.
-   Si la base ya existía antes de la gestión de usuarios, agregar las columnas
-   `activo` y `version_sesion` con un usuario de MySQL que tenga permiso ALTER.
-   El script `php scripts/actualizar_usuarios.php` verifica qué columnas faltan y
-   solo agrega esas columnas; se puede ejecutar nuevamente sin perder datos.
-   Si la cuenta de la aplicación no tiene permiso ALTER, un administrador de MySQL
-   debe ejecutar `database/actualizar_usuarios.sql` una sola vez.
 3. Copiar la configuración de ejemplo:
 
    ```bash
@@ -28,6 +22,12 @@ Requisitos: Apache, PHP 8.1 o superior con `pdo_mysql` y MySQL 8.0.16 o superior
 
 4. Completar `config/database.local.php` con un usuario de MySQL que tenga acceso
    a esa base y su contraseña. Este archivo es personal y Git lo ignora.
+   Si la base ya existía, ejecutar `php scripts/actualizar_usuarios.php` con
+   permiso `ALTER`. El script permite repetir la actualización y conserva los
+   datos. Si la cuenta de la aplicación carece de ese permiso, un administrador
+   de MySQL puede aplicar `database/registro_publico.sql` una vez sobre la base
+   del MVP. En instalaciones anteriores que todavía carezcan de `activo` y
+   `version_sesion`, aplicar primero `database/actualizar_usuarios.sql`.
 5. Cargar los datos de demostración desde la carpeta del proyecto:
 
    ```bash
@@ -56,6 +56,10 @@ los registros de la base de datos.
 - `includes/auth.php` maneja la sesión, el token de los formularios y el control
   de rol. La contraseña y su hash no se guardan en la sesión.
 - `admin.php` permite el rol `administrador`; `empleado.php`, el rol `empleado`.
+- `registro.php` crea una cuenta pública con rol `usuario`, vinculada a un
+  participante nuevo. El registro admite correos de hasta 150 caracteres para
+  conservarlos también en el perfil de participante. `mi-cuenta.php` es el
+  destino de inicio de sesión para este rol.
 - `logout.php` recibe el formulario de cierre y elimina la sesión.
 - `includes/database.php` expone `conectar_db()` para obtener la conexión PDO.
 
@@ -84,9 +88,11 @@ require __DIR__ . '/includes/auth.php';
 $usuario = requerir_rol('administrador');
 ```
 
-Los dos paneles son puntos de entrada. Para una función permitida a ambos roles,
-usar `$usuario = requerir_sesion();` en lugar de `requerir_rol`. Los nombres de
-archivos del ejemplo suponen que la pantalla está en la raíz del proyecto.
+En las pantallas para ambos roles del personal, usar
+`$usuario = requerir_rol('administrador', 'empleado');`. En una pantalla de la
+cuenta pública, usar `$usuario = requerir_rol('usuario');` y obtener el ID del
+participante desde `$usuario['id_participante']`. Los nombres de archivos del
+ejemplo suponen que la pantalla está en la raíz del proyecto.
 
 `ruta_aplicacion()` genera rutas desde la raíz de la aplicación. La cookie de
 sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
@@ -126,8 +132,10 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
   `includes/formulario_participante.php`.
 - Los formularios usan token CSRF y consultas preparadas PDO. El listado muestra
   las inscripciones activas de cada participante.
-- Los participantes no tienen cuenta de acceso: se guardan como datos y son
-  operados por el personal.
+- Los participantes cargados manualmente pueden seguir operándose sin una
+  cuenta. El registro público crea su propio participante y no vincula registros
+  anteriores por correo. Si un participante tiene una cuenta vinculada, se
+  conserva su registro.
 
 ## Inscripciones y cancelaciones
 
@@ -179,9 +187,9 @@ la gestión de participantes e inscripciones queda a cargo de García. Coordinar
 antes cualquier cambio de columnas o relaciones del archivo SQL.
 
 `usuarios.id_usuario` es un `INT` con signo. Los campos son `nombre`, `apellido`,
-`email` (único), `clave_hash` y `rol`. Los valores de `rol` son `administrador`
-y `empleado`. La sesión expone esos datos en `$_SESSION['usuario']`, salvo el hash.
-Los participantes no tienen cuentas de acceso.
+`email` (único), `clave_hash` y `rol`. Los valores de `rol` son `administrador`,
+`empleado` y `usuario`. La sesión conserva el identificador de participante para
+las cuentas públicas. El hash de la contraseña queda en la base de datos.
 
 ## GitHub Flow
 
