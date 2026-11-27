@@ -20,9 +20,10 @@ $usuario = requerir_rol('usuario');
             </form>
         </header>
         <h1>Hola, <?= escapar($usuario['nombre']) ?></h1>
-        <?php if (is_file(__DIR__ . '/catalogo.php')): ?>
-            <p><a class="boton" href="catalogo.php">Ver eventos</a></p>
-        <?php endif; ?>
+        <div class="acciones-panel">
+            <a class="boton" href="catalogo.php">Ver eventos</a>
+            <a class="boton secundario" href="inscripciones/mis-inscripciones.php">Mis inscripciones</a>
+        </div>
     </main>
 </body>
 </html>

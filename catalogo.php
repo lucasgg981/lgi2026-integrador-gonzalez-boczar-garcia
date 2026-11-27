@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/database.php';
+require __DIR__ . '/includes/solicitudes.php';
 
 $filtro_disponible = isset($_GET['disponible']) || isset($_GET['disponibles'])
     || (($_GET['filtro'] ?? '') === 'disponible')
@@ -31,15 +32,7 @@ try {
 
 $ahora = time();
 foreach ($eventos as &$evento) {
-    $cupos = (int) $evento['cupos_disponibles'];
-    $cerrado = strtotime((string) $evento['fecha_limite_inscripcion']) < $ahora;
-    if ($cerrado) {
-        $evento['estado'] = 'cerrado';
-    } elseif ($cupos <= 0) {
-        $evento['estado'] = 'completo';
-    } else {
-        $evento['estado'] = 'disponible';
-    }
+    $evento['estado'] = estado_evento($evento, $ahora);
 }
 unset($evento);
 
@@ -65,6 +58,9 @@ $usuario = usuario_actual();
             <p class="etiqueta">Eventos y cursos</p>
             <?php if ($usuario !== null): ?>
                 <a href="<?= escapar(ruta_panel($usuario['rol'])) ?>">Volver al panel</a>
+                <?php if ($usuario['rol'] === 'usuario'): ?>
+                    <a href="<?= escapar(ruta_aplicacion('inscripciones/mis-inscripciones.php')) ?>">Mis inscripciones</a>
+                <?php endif; ?>
             <?php else: ?>
                 <a href="<?= escapar(ruta_aplicacion('index.php')) ?>">Iniciar sesión</a>
             <?php endif; ?>
@@ -110,10 +106,10 @@ $usuario = usuario_actual();
                                         <span class="nota">No disponible</span>
                                     <?php elseif ($usuario === null): ?>
                                         <a href="<?= escapar(ruta_aplicacion('index.php')) ?>">Iniciá sesión para pedir cupo</a>
-                                    <?php elseif (file_exists(__DIR__ . '/inscripciones/solicitar.php')): ?>
+                                    <?php elseif ($usuario['rol'] === 'usuario'): ?>
                                         <a class="boton" href="<?= escapar(ruta_aplicacion('inscripciones/solicitar.php?id_evento=' . (int) $evento['id_evento'])) ?>">Solicitar cupo</a>
                                     <?php else: ?>
-                                        <span class="nota">Las solicitudes todavía no están habilitadas.</span>
+                                        <a href="<?= escapar(ruta_aplicacion('inscripciones/crear.php')) ?>">Inscribir desde el panel</a>
                                     <?php endif; ?>
                                 </td>
                             </tr>

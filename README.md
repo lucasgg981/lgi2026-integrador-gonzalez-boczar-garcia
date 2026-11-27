@@ -155,6 +155,25 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
   canceladas) no pueden eliminarse.
 - Los formularios usan token CSRF y consultas preparadas PDO.
 
+## Solicitudes de cupo del usuario
+
+- El catálogo enlaza a `inscripciones/solicitar.php` solo para el rol `usuario`.
+  El personal sigue inscribiendo desde `inscripciones/crear.php`.
+- `solicitar.php` toma el participante y el usuario de la sesión, vuelve a
+  consultar el evento y reutiliza `registrar_inscripcion()` de
+  `includes/inscripciones.php`, con la misma transacción y el bloqueo
+  `SELECT ... FOR UPDATE` del alta manual.
+- Se rechazan los eventos inexistentes, sin cupos, con el plazo cerrado y las
+  solicitudes duplicadas. Si dos personas piden el último cupo a la vez, solo una
+  confirmación se guarda.
+- `inscripciones/mis-inscripciones.php` muestra únicamente las inscripciones del
+  participante vinculado a la cuenta, con el estado `Confirmada` o `Cancelada`.
+  `mi-cuenta.php` enlaza al catálogo y a las inscripciones propias.
+- El autor de una autoinscripción se guarda en `inscripciones.id_usuario` con la
+  cuenta pública que la realizó. Las altas manuales conservan el usuario del
+  personal, así que la trazabilidad por operador no se pierde.
+- Las pantallas usan token CSRF y consultas preparadas PDO.
+
 ## Documentación adicional
 
 - `docs/flujo-lista-espera.md` registra la evaluación y la decisión sobre la
@@ -169,14 +188,14 @@ php tests/usuarios.php
 php tests/eventos.php
 php tests/participantes.php
 php tests/inscripciones.php
-php tests/participantes.php
-php tests/inscripciones.php
 ```
 
 Estas pruebas verifican validación de eventos y participantes, restricciones por
 rol, CSRF, eliminación mediante POST, escape de HTML y rutas de sesión desde
 subcarpetas. Requieren MySQL con el esquema actualizado y permiso `CREATE TEMPORARY TABLES`.
-Usan cuentas en tablas temporales sin modificar los usuarios reales. Las
+Usan cuentas en tablas temporales sin modificar los usuarios reales. La prueba
+del último cupo y la de autoinscripción crean un evento, participantes y una
+inscripción temporales en las tablas reales, y los eliminan al terminar. Las
 operaciones completas de alta, consulta, edición y eliminación deben probarse
 además con la base local configurada y el esquema importado.
 
