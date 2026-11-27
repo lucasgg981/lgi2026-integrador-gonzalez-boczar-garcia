@@ -174,6 +174,11 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
   personal, así que la trazabilidad por operador no se pierde.
 - Las pantallas usan token CSRF y consultas preparadas PDO.
 
+## Documentación adicional
+
+- `docs/flujo-lista-espera.md` registra la evaluación y la decisión sobre la
+  aprobación manual y la lista de espera (issue #18).
+
 ## Verificación
 
 Desde la raíz del proyecto, ejecutar:
