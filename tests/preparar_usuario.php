@@ -21,13 +21,13 @@ if (isset($caso['rol']) || $registro_prueba) {
         }
     }
     $insertar_prueba = $db_prueba->prepare(
-        'INSERT INTO usuarios (id_usuario, nombre, apellido, email, clave_hash, rol, activo, version_sesion)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO usuarios (id_usuario, nombre, apellido, email, clave_hash, rol, activo, version_sesion, id_participante)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $insertar_prueba->execute([1, 'Prueba', 'Local', 'prueba@eventos.local', password_hash('Anterior123!', PASSWORD_BCRYPT, ['cost' => 4]),
-        $caso['rol_real'] ?? $caso['rol'] ?? 'empleado', $caso['activo_real'] ?? 1, $caso['version_real'] ?? 1]);
+        $caso['rol_real'] ?? $caso['rol'] ?? 'empleado', $caso['activo_real'] ?? 1, $caso['version_real'] ?? 1, $caso['id_participante'] ?? null]);
     if (isset($caso['segundo'])) {
         $insertar_prueba->execute([2, 'Segundo', 'Local', 'segundo@eventos.local', password_hash('Anterior123!', PASSWORD_BCRYPT, ['cost' => 4]),
-            $caso['segundo'], 1, 1]);
+            $caso['segundo'], 1, 1, null]);
     }
 }
