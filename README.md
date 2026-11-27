@@ -174,6 +174,17 @@ sesión usa esa misma raíz, también cuando se accede desde `eventos/`.
   personal, así que la trazabilidad por operador no se pierde.
 - Las pantallas usan token CSRF y consultas preparadas PDO.
 
+## Uso en celular y mensajes de estado
+
+- Las pantallas se verificaron a 360 px. El catálogo y las inscripciones propias
+  usan tarjetas que se apilan, y los formularios conservan los datos válidos ante
+  un error.
+- Los estados del catálogo se muestran como "Disponible", "Sin cupos" y "Plazo
+  cerrado"; las inscripciones propias como "Confirmada" o "Cancelada".
+- Las fechas se muestran como dd/mm/aaaa hh:mm.
+- Los campos `select` y los enlaces de acción son accesibles por teclado; los
+  mensajes de error y confirmación usan `role="alert"` y `role="status"`.
+
 ## Verificación
 
 Desde la raíz del proyecto, ejecutar:

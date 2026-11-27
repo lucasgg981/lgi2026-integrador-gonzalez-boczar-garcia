@@ -27,12 +27,13 @@ p { margin-top: 0; }
 .nota { margin: 24px 0 0; font-size: .85rem; }
 
 label { display: block; margin: 18px 0 6px; font-weight: 600; }
-input, textarea {
+input, select, textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #8b9da4;
     border-radius: 8px;
     font: inherit;
+    background: #fff;
 }
 
 button, .boton {
@@ -79,3 +80,94 @@ th { background: #e8f4f1; }
     .login, .panel { margin: 12px auto; padding: 24px; }
     .cabecera { align-items: flex-start; flex-direction: column; }
 }
+select:focus-visible { outline: 3px solid #227bd1; outline-offset: 3px; }
+
+.ayuda { margin: 6px 0 0; color: #526770; font-size: .85rem; }
+
+.cabecera-enlaces { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+.lista-eventos, .lista-inscripciones { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+
+.tarjeta-evento, .tarjeta-inscripcion {
+    border: 1px solid #d8e2e5;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+}
+
+.tarjeta-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.tarjeta-evento h2, .tarjeta-inscripcion h2 { margin: 0; font-size: 1.2rem; overflow-wrap: anywhere; }
+
+.datos-evento {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.datos-evento dt {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #526770;
+    margin: 0;
+}
+
+.datos-evento dd { margin: 2px 0 0; font-weight: 600; }
+
+.insignia {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.insignia-disponible { background: #e4f2ee; color: #126b62; }
+.insignia-completo { background: #fdf1dc; color: #8a5a10; }
+.insignia-cerrado { background: #eef1f3; color: #526770; }
+
+.detalle-evento {
+    border: 1px solid #d8e2e5;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+}
+
+.detalle-evento h2 { margin-bottom: 8px; }
+.acciones-formulario { margin-top: 16px; }
+
+@media (max-width: 520px) {
+    body { padding: 20px 12px; }
+    .login, .panel { margin: 12px auto; padding: 24px; }
+    .cabecera { align-items: flex-start; flex-direction: column; }
+    .tarjeta-evento, .tarjeta-inscripcion, .detalle-evento { padding: 16px; }
+    .datos-evento { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 360px) {
+    .datos-evento { grid-template-columns: 1fr; }
+    .tarjeta-cabecera { flex-direction: column; align-items: flex-start; }
+}
+.filtros-catalogo { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 24px; }
+.filtro {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1px solid #8b9da4;
+    border-radius: 999px;
+    text-decoration: none;
+    color: #19333d;
+    background: #fff;
+    font-size: .9rem;
+}
+.filtro:hover { background: #eef3f4; }
+.filtro-activo { background: #126b62; color: #fff; border-color: #126b62; }
+.filtro-activo:hover { background: #0c514a; color: #fff; }

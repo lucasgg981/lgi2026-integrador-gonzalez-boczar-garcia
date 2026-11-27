@@ -2,3 +2,6 @@
 config.local.php
 /config/database.local.php
 *.log
+
+# Playwright MCP artifacts
+.playwright-mcp/
